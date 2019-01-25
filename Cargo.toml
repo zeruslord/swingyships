@@ -1,0 +1,25 @@
+[package]
+name = "swingyships"
+version = "0.1.0"
+authors = ["zeruslord <zeruslord@gmail.com>"]
+
+[dependencies]
+piston = "*"
+piston_window = "*"
+piston2d-sprite = "*"
+find_folder = "*"
+piston-ai_behavior = "*"
+gl = "*"
+piston2d-glium_graphics = "*"
+pistoncore-glutin_window = "*"
+wrapped2d = "*"
+uuid = "*"
+gfx_device_gl = "*"
+
+[dependencies.glium]
+version = "*"
+default_features = false
+
+[dependencies.piston2d-graphics]
+version = "*"
+features = ["glyph_cache_rusttype"]
