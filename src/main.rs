@@ -11,6 +11,10 @@ extern crate gfx_device_gl;
 extern crate uuid;
 
 extern crate wrapped2d;
+mod swingyships;
+use swingyships::objects::*;
+use swingyships::game::*;
+use swingyships::loader;
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -39,219 +43,7 @@ use piston::window::WindowSettings;
 
 use glutin_window::GlutinWindow;
 
-#[derive(Debug, Clone, Copy)]
-enum GameObjectType {
-    Default,
-    Chaser,
-    Player,
-}
 
-struct Game {
-    scene: Scene<Texture>,
-    world: b2::World::<NoUserData>,
-    objects: Vec<GameObject>,
-    player: TypedHandle<b2::Body>,
-    cursor_captured: bool,
-}
-
-#[derive(Debug, Clone)]
-struct GameObject {
-    physics_handle: TypedHandle<b2::Body>,
-    draw_id: Uuid,
-    obj_type: GameObjectType
-}
-
-impl GameObject {
-    fn new(physics_handle: TypedHandle<b2::Body>,
-            draw_id: Uuid,
-            obj_type: GameObjectType)
-            -> GameObject {
-        GameObject{physics_handle, draw_id, obj_type}
-    }
-}
-
-impl GameObjectType {
-    fn update(&self, e: &Event, game: &mut Game, handle: TypedHandle<b2::Body>) {
-        match self {
-            &GameObjectType::Default => {},
-            &GameObjectType::Player => {
-                if game.cursor_captured {
-                    if let Some(args) = e.mouse_relative_args() {
-                        let mut force = b2::Vec2{x:args[0] as f32 * 10000., y:-args[1] as f32 * 10000.};
-
-                        let magnitude = (force.x * force.x + force.y * force.y).sqrt();
-                        if (magnitude > 2000.) {
-                            force.x = force.x * (2000. / magnitude);
-                            force.y = force.y * (2000. / magnitude);
-                        }
-                        let mut body = game.world.body_mut(handle);
-                        body.apply_force_to_center(&force, true);
-                    }
-                }
-            },
-            &GameObjectType::Chaser => {
-                if let Some(_) = e.render_args() {
-                    let mut chaser_body = game.world.body_mut(handle);
-                    let ship_body = game.world.body(game.player);
-
-                    let vec = ship_body.position() - chaser_body.position();
-                    let vec = vec / vec.norm() * 1000.;
-                    chaser_body.apply_force_to_center(&vec, true);
-                }
-            }
-        }
-    }
-}
-
-
-fn make_chaser(
-        game: &mut Game,
-        tex: Rc<Texture>,
-        x: f32,
-        y: f32) -> GameObject
-{
-    let mut def = b2::BodyDef {
-        body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x, y },
-        .. b2::BodyDef::new()
-    };
-
-    let ball_handle = game.world.create_body(&def);
-    {
-        let mut body = game.world.body_mut(ball_handle);
-        body.set_gravity_scale(0.);
-        body.set_linear_damping(1.5);
-        body.set_rotation_fixed(true);
-
-        let mut shape = b2::CircleShape::new();
-        shape.set_radius(3.6);
-
-        let handle = body.create_fast_fixture(&shape, 2.);
-        let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(0.5);
-        fixture.set_density(0.01);
-    }
-
-    let ball_id;
-    let mut sprite = Sprite::from_texture(tex.clone());
-    ball_id = game.scene.add_child(sprite);
-    game.scene.run(ball_id, &Action(ScaleBy(0., -0.5, -0.5)));
-
-    game.objects.push(GameObject::new(ball_handle, ball_id, GameObjectType::Chaser));
-    GameObject::new(ball_handle, ball_id, GameObjectType::Chaser)
-}
-
-fn make_ball(
-        game: &mut Game,
-        tex: Rc<Texture>,
-        x: f32,
-        y: f32) -> GameObject
-{
-    let mut def = b2::BodyDef {
-        body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x, y },
-        .. b2::BodyDef::new()
-    };
-
-    let mut sprite = Sprite::from_texture(tex.clone());
-    let whip_id = game.scene.add_child(sprite);
-    game.scene.run(whip_id, &Action(ScaleBy(0., -0.75, -0.75)));
-
-
-    def.position = b2::Vec2{x, y};
-    let whip_handle = game.world.create_body(&def);
-    {
-        let mut body = game.world.body_mut(whip_handle);
-        body.set_linear_damping(0.5);
-        body.set_angular_damping(0.9);
-
-        let mut shape = b2::CircleShape::new();
-        shape.set_radius(1.8);
-
-        let handle = body.create_fast_fixture(&shape, 4.);
-        let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(0.8);
-        fixture.set_density(0.4);
-    }
-
-    game.objects.push(GameObject::new(whip_handle, whip_id, GameObjectType::Default));
-    GameObject::new(whip_handle, whip_id, GameObjectType::Default)
-}
-
-fn make_rope_joint(
-        game: &mut Game,
-        handle1: TypedHandle<b2::Body>,
-        handle2: TypedHandle<b2::Body>,
-        length: f32) {
-    let mut rope_joint_def = b2::RopeJointDef::new(handle1, handle2);
-    rope_joint_def.collide_connected = false;
-    rope_joint_def.max_length = length;
-    let rope_handle = game.world.create_joint(&rope_joint_def);
-}
-
-fn make_chain(
-        game: &mut Game,
-        handle1: TypedHandle<b2::Body>,
-        handle2: TypedHandle<b2::Body>,
-        tex: Rc<Texture>,
-        x: f32,
-        y: f32,
-        length: i32) {
-
-    let center1 = game.world.body(handle1).local_center().clone();
-    let mut link_prev: GameObject = make_chain_link(game, handle1, tex.clone(), x, y, center1);
-
-    for i in 1 .. length {
-        link_prev = make_chain_link(game, link_prev.physics_handle, tex.clone(), x, y, b2::Vec2{x: 0.18, y: 0.18});
-    }
-
-    let mut rev_def = b2::RopeJointDef::new(link_prev.physics_handle, handle2);
-    rev_def.collide_connected = false;
-    rev_def.local_anchor_a = b2::Vec2{x: 0.18, y: 0.18};
-    rev_def.local_anchor_b = game.world.body(handle2).local_center().clone();
-    rev_def.max_length = 0.3;
-    game.world.create_joint(&rev_def);
-}
-
-fn make_chain_link(
-        game: &mut Game,
-        handle_prev: TypedHandle<b2::Body>,
-        tex: Rc<Texture>,
-        x: f32,
-        y: f32,
-        local_anchor_prev: b2::Vec2) -> GameObject {
-    let mut sprite = Sprite::from_texture(tex);
-    let link_id = game.scene.add_child(sprite);
-    game.scene.run(link_id, &Action(ScaleBy(0., -0.92, -0.92)));
-    let mut def = b2::BodyDef {
-        body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x, y },
-        fixed_rotation: false,
-        .. b2::BodyDef::new()
-    };
-
-    let link_handle = game.world.create_body(&def);
-    {
-        let mut body = game.world.body_mut(link_handle);
-        body.set_rotation_fixed(false);
-
-        let shape = b2::PolygonShape::new_box(0.36,0.36);
-
-        let handle = body.create_fast_fixture(&shape, 0.01);
-        let mut fixture = body.fixture_mut(handle);
-        //fixture.set_filter_data(&b2::Filter{category_bits: 0, mask_bits: 0, group_index: 0});
-    }
-
-    let mut rev_def = b2::RopeJointDef::new(handle_prev, link_handle);
-    rev_def.collide_connected = false;
-    rev_def.local_anchor_a = local_anchor_prev;
-    rev_def.local_anchor_b = b2::Vec2{x: 0.18, y: 0.18};
-    rev_def.max_length = 1.0;
-    game.world.create_joint(&rev_def);
-
-    game.objects.push(GameObject::new(link_handle, link_id, GameObjectType::Default));
-    GameObject::new(link_handle, link_id, GameObjectType::Default)
-}
 
 fn main() {
     let opengl = OpenGL::V3_0;
@@ -415,9 +207,9 @@ fn main() {
     make_chain(&mut game, ball1.physics_handle, ship_handle, tex.clone(), 50., -50., 15);
 
 
-//    let ball2 = make_ball(&mut game, tex.clone(), 50., -70.);
-//    make_chain(&mut game, ball1.physics_handle, ball2.physics_handle,  tex.clone(),50., -50., 5);
-//    make_rope_joint(&mut game, ball1.physics_handle, ball2.physics_handle, 5.);
+    let ball2 = make_ball(&mut game, tex.clone(), 50., -70.);
+    make_chain(&mut game, ball1.physics_handle, ball2.physics_handle,  tex.clone(),50., -50., 5);
+    make_rope_joint(&mut game, ball1.physics_handle, ball2.physics_handle, 5.);
 
     let ball3 = make_ball(&mut game, tex.clone(), 50., -20.);
     let ball4 = make_ball(&mut game, tex.clone(), 50., -20.);

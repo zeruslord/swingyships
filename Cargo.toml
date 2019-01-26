@@ -15,6 +15,7 @@ pistoncore-glutin_window = "*"
 wrapped2d = "*"
 uuid = "*"
 gfx_device_gl = "*"
+toml = "0.4.*"
 
 [dependencies.glium]
 version = "*"
