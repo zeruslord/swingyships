@@ -963,6 +963,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "slotmap"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "smallvec"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -992,6 +997,7 @@ dependencies = [
  "pistoncore-glutin_window 0.45.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.29 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slotmap 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "wrapped2d 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1351,6 +1357,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum serde_derive_internals 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1fc848d073be32cd982380c06587ea1d433bc1a4c4a111de07ec2286a3ddade8"
 "checksum shader_version 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a29e10c39144f4663c0f74de29b9a61237bf410be40753b1a3b682832abcf4aa"
 "checksum shared_library 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "8254bf098ce4d8d7cc7cc6de438c5488adc5297e5b7ffef88816c0a91bd289c1"
+"checksum slotmap 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "759fd553261805f128e2900bf69ab3d034260bc338caf7f0ee54dbf035c85acd"
 "checksum smallvec 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "44db0ecb22921ef790d17ae13a3f6d15784183ff5f2a01aa32098c7498d2b4b9"
 "checksum stb_truetype 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "52ce2b38abdd11cffbc68928810248e0dd003fea489a88a404dc1ba7ae2d5538"
 "checksum syn 0.10.8 (registry+https://github.com/rust-lang/crates.io-index)" = "58fd09df59565db3399efbba34ba8a2fec1307511ebd245d0061ff9d42691673"

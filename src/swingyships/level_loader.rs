@@ -34,7 +34,8 @@ pub struct ChaserProps {
 
 pub fn load_level(game: &mut Game, tex: Textures, def: LevelDef) {
     let chasers = def.chasers;
-    for chaser in chasers.defs {
-        make_chaser(game, &tex.chaser, chaser, &chasers.props);
+    for chaser_def in chasers.defs {
+        let chaser = make_chaser(game, &tex.chaser, chaser_def, &chasers.props);
+        
     }
 }

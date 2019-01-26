@@ -12,7 +12,7 @@ extern crate uuid;
 #[macro_use]
 extern crate serde_derive;
 extern crate toml;
-
+extern crate slotmap;
 extern crate wrapped2d;
 mod swingyships;
 use swingyships::objects::*;
@@ -23,6 +23,7 @@ use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
 use wrapped2d::handle::TypedHandle;
 
+use slotmap::{SlotMap, DefaultKey};
 
 use sprite::*;
 use ai_behavior::{
@@ -33,6 +34,7 @@ use ai_behavior::{
     While,
 };
 
+use std::collections::HashMap;
 use std::io::prelude::*;
 use std::fs::File;
 use std::rc::Rc;
@@ -59,7 +61,7 @@ fn main() {
     window.set_capture_cursor(true);
     let mut g2d = Glium2d::new(opengl, window);
 
-    let mut game_objects = Vec::new();
+    let mut game_objects = SlotMap::new();
     let gravity = b2::Vec2 { x: 0., y: -10. };
     let mut world = b2::World::<NoUserData>::new(&gravity);
     let mut scene: Scene<Texture> = Scene::new();
@@ -102,13 +104,13 @@ fn main() {
         fixture.set_density(0.01);
     }
 
-    game_objects.push(GameObject::new(ship_handle, ship_id, GameObjectType::Player));
+    let player = game_objects.insert(GameObject::new(ship_handle, ship_id, GameObjectType::Player));
 
     let mut game = Game{
         objects: game_objects,
         world,
         scene,
-        player: ship_handle,
+        player: player,
         cursor_captured: true
     };
 
@@ -210,38 +212,39 @@ fn main() {
     load_level(&mut game, swingyships::level_loader::Textures{chaser: chaser_tex}, level_def);
 
     let ball1 = make_ball(&mut game, tex.clone(), 50., -65.);
-    make_rope_joint(&mut game, ball1.physics_handle, ship_handle, 15.);
-    make_chain(&mut game, ball1.physics_handle, ship_handle, tex.clone(), 50., -50., 15);
+    make_rope_joint(&mut game, ball1, player, 15.);
+    make_chain(&mut game, ball1, player, tex.clone(), 50., -50., 15);
 
 
     let ball2 = make_ball(&mut game, tex.clone(), 50., -70.);
-    make_chain(&mut game, ball1.physics_handle, ball2.physics_handle,  tex.clone(),50., -50., 5);
-    make_rope_joint(&mut game, ball1.physics_handle, ball2.physics_handle, 5.);
+    make_chain(&mut game, ball1, ball2,  tex.clone(),50., -50., 5);
+    make_rope_joint(&mut game, ball1, ball2, 5.);
 
     let ball3 = make_ball(&mut game, tex.clone(), 50., -20.);
-    let ball4 = make_ball(&mut game, tex.clone(), 50., -20.);
+    let ball4 = make_ball(&mut game, tex.clone(), 50., -30.);
 
-    make_chain(&mut game, ball3.physics_handle, ball4.physics_handle,  tex.clone(),50., -50., 8);
-    make_rope_joint(&mut game, ball3.physics_handle, ball4.physics_handle, 8.);
+    make_chain(&mut game, ball3, ball4,  tex.clone(),50., -50., 8);
+    make_rope_joint(&mut game, ball3, ball4, 8.);
 
     while let Some(e) = window.next() {
         game.scene.event(&e);
 
-        let objects = game.objects.clone();
-        for object in objects {
-            object.obj_type.update(&e, &mut game, object.physics_handle)
+        for key in game.objects.keys() {
+            let handle = game.handle(key).unwrap();
+            game.obj_type(key).unwrap().update(&e, &game, handle);
         }
 
         if let Some(args) = e.render_args() {
             game.world.step(1./60., 20, 20);
 
-            for object in game.objects.iter() {
+            for key in game.objects.keys() {
 
-                let body = game.world.body(object.physics_handle);
-                game.scene.child_mut(object.draw_id).unwrap().set_position(
-                        body.position().x as f64 * 10.,
-                        -body.position().y as f64 * 10.);
-                game.scene.run(object.draw_id, &Action(RotateBy(0., body.angle() as f64)));
+                let x = game.body(key).unwrap().position().x as f64 * 10.;
+                let y = -game.body(key).unwrap().position().y as f64 * 10.;
+                let angle = game.body(key).unwrap().angle() as f64;
+                let draw_id = game.draw_id(key).unwrap();
+                game.scene.child_mut(draw_id).unwrap().set_position(x, y);
+                game.scene.run(draw_id, &Action(RotateBy(0., angle)));
             }
 
             let mut target = window.draw();

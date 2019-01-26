@@ -2,8 +2,10 @@ extern crate wrapped2d;
 extern crate ai_behavior;
 extern crate sprite;
 extern crate glium_graphics;
+extern crate slotmap;
 
 use glium_graphics::Texture;
+use slotmap::{SlotMap, DefaultKey};
 
 use swingyships::game::{Game, GameObject, GameObjectType};
 use swingyships::level_loader::{ChaserDef, ChaserProps};
@@ -12,7 +14,6 @@ use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
 use wrapped2d::handle::TypedHandle;
 use std::rc::Rc;
-
 
 use sprite::*;
 use ai_behavior::{
@@ -27,7 +28,7 @@ pub fn make_chaser(
         game: &mut Game,
         tex: &Rc<Texture>,
         def: ChaserDef,
-        props: &ChaserProps) -> GameObject
+        props: &ChaserProps) -> DefaultKey
 {
     let mut def = b2::BodyDef {
         body_type: b2::BodyType::Dynamic,
@@ -56,15 +57,14 @@ pub fn make_chaser(
     ball_id = game.scene.add_child(sprite);
     game.scene.run(ball_id, &Action(ScaleBy(0., -(1. - props.scale), -(1. - props.scale))));
 
-    game.objects.push(GameObject::new(ball_handle, ball_id, GameObjectType::Chaser));
-    GameObject::new(ball_handle, ball_id, GameObjectType::Chaser)
+    game.objects.insert(GameObject::new(ball_handle, ball_id, GameObjectType::Chaser))
 }
 
 pub fn make_ball(
         game: &mut Game,
         tex: Rc<Texture>,
         x: f32,
-        y: f32) -> GameObject
+        y: f32) -> DefaultKey
 {
     let mut def = b2::BodyDef {
         body_type: b2::BodyType::Dynamic,
@@ -92,43 +92,47 @@ pub fn make_ball(
         fixture.set_restitution(0.8);
     }
 
-    game.objects.push(GameObject::new(whip_handle, whip_id, GameObjectType::Default));
-    GameObject::new(whip_handle, whip_id, GameObjectType::Default)
+    game.objects.insert(GameObject::new(whip_handle, whip_id, GameObjectType::Default))
 }
 
 pub fn make_rope_joint(
         game: &mut Game,
-        handle1: TypedHandle<b2::Body>,
-        handle2: TypedHandle<b2::Body>,
-        length: f32) {
-    let mut rope_joint_def = b2::RopeJointDef::new(handle1, handle2);
+        handle1: DefaultKey,
+        handle2: DefaultKey,
+        length: f32) -> Option<TypedHandle<b2::Joint>>{
+    let mut rope_joint_def = b2::RopeJointDef::new(
+        game.objects.get(handle1)?.physics_handle,
+        game.objects.get(handle2)?.physics_handle);
     rope_joint_def.collide_connected = false;
     rope_joint_def.max_length = length;
-    let rope_handle = game.world.create_joint(&rope_joint_def);
+    Some(game.world.create_joint(&rope_joint_def))
 }
 
 pub fn make_chain(
         game: &mut Game,
-        handle1: TypedHandle<b2::Body>,
-        handle2: TypedHandle<b2::Body>,
+        key1: DefaultKey,
+        key2: DefaultKey,
         tex: Rc<Texture>,
         x: f32,
         y: f32,
-        length: i32) {
+        length: i32) -> Option<()> {
 
-    let center1 = game.world.body(handle1).local_center().clone();
-    let mut link_prev: GameObject = make_chain_link(game, handle1, tex.clone(), x, y, center1);
+    let center1 = game.body(key1)?.local_center().clone();
+    let handle_prev = game.handle(key1)?;
+    let mut link_prev = make_chain_link(game, handle_prev, tex.clone(), x, y, center1);
 
     for i in 1 .. length {
-        link_prev = make_chain_link(game, link_prev.physics_handle, tex.clone(), x, y, b2::Vec2{x: 0.18, y: 0.18});
+        let handle_prev = game.handle(link_prev)?;
+        link_prev = make_chain_link(game, handle_prev, tex.clone(), x, y, b2::Vec2{x: 0.18, y: 0.18});
     }
 
-    let mut rev_def = b2::RopeJointDef::new(link_prev.physics_handle, handle2);
+    let mut rev_def = b2::RopeJointDef::new(game.handle(link_prev)?, game.handle(key2)?);
     rev_def.collide_connected = false;
     rev_def.local_anchor_a = b2::Vec2{x: 0.18, y: 0.18};
-    rev_def.local_anchor_b = game.world.body(handle2).local_center().clone();
+    rev_def.local_anchor_b = game.body(key2)?.local_center().clone();
     rev_def.max_length = 0.3;
     game.world.create_joint(&rev_def);
+    Some(())
 }
 
 fn make_chain_link(
@@ -137,7 +141,7 @@ fn make_chain_link(
         tex: Rc<Texture>,
         x: f32,
         y: f32,
-        local_anchor_prev: b2::Vec2) -> GameObject {
+        local_anchor_prev: b2::Vec2) -> DefaultKey {
     let mut sprite = Sprite::from_texture(tex);
     let link_id = game.scene.add_child(sprite);
     game.scene.run(link_id, &Action(ScaleBy(0., -0.92, -0.92)));
@@ -167,6 +171,5 @@ fn make_chain_link(
     rev_def.max_length = 1.0;
     game.world.create_joint(&rev_def);
 
-    game.objects.push(GameObject::new(link_handle, link_id, GameObjectType::Default));
-    GameObject::new(link_handle, link_id, GameObjectType::Default)
+    game.objects.insert(GameObject::new(link_handle, link_id, GameObjectType::Default))
 }

@@ -4,6 +4,8 @@ extern crate sprite;
 extern crate glium_graphics;
 extern crate uuid;
 extern crate piston_window;
+extern crate slotmap;
+use std::cell::Ref;
 
 use glium_graphics::Texture;
 use piston_window::{Event, PressEvent, MouseCursorEvent, MouseRelativeEvent, RenderEvent, AdvancedWindow};
@@ -21,14 +23,17 @@ use ai_behavior::{
     While,
 };
 
+use slotmap::{SlotMap, DefaultKey};
+
+use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
 
 pub struct Game {
     pub scene: Scene<Texture>,
     pub world: b2::World<NoUserData>,
-    pub objects: Vec<GameObject>,
-    pub player: TypedHandle<b2::Body>,
+    pub objects: SlotMap<DefaultKey, GameObject>,
+    pub player: DefaultKey,
     pub cursor_captured: bool,
 }
 
@@ -39,11 +44,29 @@ pub enum GameObjectType {
     Player,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct GameObject {
     pub physics_handle: TypedHandle<b2::Body>,
     pub draw_id: Uuid,
     pub obj_type: GameObjectType
+}
+
+impl Game {
+    pub fn body(&self, key: DefaultKey) -> Option<Ref<b2::MetaBody<NoUserData>>> {
+        Some(self.world.body(self.objects.get(key)?.physics_handle))
+    }
+
+    pub fn handle(&self, key: DefaultKey) -> Option<TypedHandle<b2::Body>> {
+        Some(self.objects.get(key)?.physics_handle)
+    }
+
+    pub fn draw_id(&self, key: DefaultKey) -> Option<Uuid> {
+        Some(self.objects.get(key)?.draw_id)
+    }
+
+    pub fn obj_type(&self, key: DefaultKey) -> Option<GameObjectType> {
+        Some(self.objects.get(key)?.obj_type)
+    }
 }
 
 impl GameObject {
@@ -56,7 +79,7 @@ impl GameObject {
 }
 
 impl GameObjectType {
-    pub fn update(&self, e: &Event, game: &mut Game, handle: TypedHandle<b2::Body>) {
+    pub fn update(&self, e: &Event, game: &Game, handle: TypedHandle<b2::Body>) {
         match self {
             &GameObjectType::Default => {},
             &GameObjectType::Player => {
@@ -77,7 +100,7 @@ impl GameObjectType {
             &GameObjectType::Chaser => {
                 if let Some(_) = e.render_args() {
                     let mut chaser_body = game.world.body_mut(handle);
-                    let ship_body = game.world.body(game.player);
+                    let ship_body = game.body(game.player).unwrap();
 
                     let vec = ship_body.position() - chaser_body.position();
                     let vec = vec / vec.norm() * 1000.;
