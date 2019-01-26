@@ -990,6 +990,8 @@ dependencies = [
  "piston2d-sprite 0.43.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.77.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-glutin_window 0.45.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.29 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "wrapped2d 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",

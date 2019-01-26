@@ -9,12 +9,15 @@ extern crate find_folder;
 extern crate glutin_window;
 extern crate gfx_device_gl;
 extern crate uuid;
+#[macro_use]
+extern crate serde_derive;
+extern crate toml;
 
 extern crate wrapped2d;
 mod swingyships;
 use swingyships::objects::*;
 use swingyships::game::*;
-use swingyships::loader;
+use swingyships::loader::Chasers;
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -30,6 +33,8 @@ use ai_behavior::{
     While,
 };
 
+use std::io::prelude::*;
+use std::fs::File;
 use std::rc::Rc;
 use std::iter::FromIterator;
 use uuid::Uuid;
@@ -197,10 +202,13 @@ fn main() {
     rev_joint_def.enable_limit = false;
     let rev_handle = world.create_joint(&rev_joint_def);
 */
-
-    make_chaser(&mut game, chaser_tex.clone(), 80., -50.);
-    make_chaser(&mut game, chaser_tex.clone(), 80., -20.);
-    make_chaser(&mut game, chaser_tex.clone(), 80., -80.);
+    let mut chasers_file = File::open(assets.join("chasers.toml")).unwrap();
+    let mut chasers_contents = String::new();
+    chasers_file.read_to_string(&mut chasers_contents).unwrap();
+    let chasers: Chasers = toml::from_str(&chasers_contents).unwrap();
+    for chaser in chasers.defs {
+        make_chaser(&mut game, &chaser_tex, chaser, &chasers.props);
+    }
 
     let ball1 = make_ball(&mut game, tex.clone(), 50., -65.);
     make_rope_joint(&mut game, ball1.physics_handle, ship_handle, 15.);

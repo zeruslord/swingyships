@@ -22,14 +22,29 @@ use ai_behavior::{
     While,
 };
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct ChaserDef {
+    pub x: f32,
+    pub y: f32
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ChaserProps {
+    pub linear_damping: f32,
+    pub scale: f64,
+    pub density: f32,
+    pub restitution: f32
+}
+
 pub fn make_chaser(
         game: &mut Game,
-        &ChaserDef,
-        &ChaserProps) -> GameObject
+        tex: &Rc<Texture>,
+        def: ChaserDef,
+        props: &ChaserProps) -> GameObject
 {
     let mut def = b2::BodyDef {
         body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x, y },
+        position: b2::Vec2 { x: def.x, y: def.y },
         .. b2::BodyDef::new()
     };
 
@@ -37,22 +52,22 @@ pub fn make_chaser(
     {
         let mut body = game.world.body_mut(ball_handle);
         body.set_gravity_scale(0.);
-        body.set_linear_damping(1.5);
+        body.set_linear_damping(props.linear_damping);
         body.set_rotation_fixed(true);
 
         let mut shape = b2::CircleShape::new();
-        shape.set_radius(3.6);
+        shape.set_radius(props.scale as f32 * 7.2);
 
         let handle = body.create_fast_fixture(&shape, 2.);
         let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(0.5);
-        fixture.set_density(0.01);
+        fixture.set_restitution(props.restitution);
+        fixture.set_density(props.density);
     }
 
     let ball_id;
     let mut sprite = Sprite::from_texture(tex.clone());
     ball_id = game.scene.add_child(sprite);
-    game.scene.run(ball_id, &Action(ScaleBy(0., -0.5, -0.5)));
+    game.scene.run(ball_id, &Action(ScaleBy(0., -(1. - props.scale), -(1. - props.scale))));
 
     game.objects.push(GameObject::new(ball_handle, ball_id, GameObjectType::Chaser));
     GameObject::new(ball_handle, ball_id, GameObjectType::Chaser)
