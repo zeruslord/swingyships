@@ -1,0 +1,14 @@
+name = "noob_whip"
+
+[[colliders]]
+  name = "whip"
+  props = "whip"
+  x = 0.0
+  y = -10.0
+
+[[chains]]
+  object1 = "root"
+  object2 = "whip"
+  x = 0.0
+  y = -10.0
+  length = 10

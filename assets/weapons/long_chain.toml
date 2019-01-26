@@ -1,50 +1,51 @@
+name = "long_chain"
 
-[[weapons.defs]]
-    x = 50.0
-    y = -60.0
+[[colliders]]
+    x = 0.0
+    y = -10.0
     name = "little1"
     props = "little"
 
-[[weapons.defs]]
-  x = 50.0
-  y = -63.0
+[[colliders]]
+  x = 0.0
+  y = -13.0
   name = "little2"
   props = "little"
 
-[[weapons.defs]]
-  x = 50.0
-  y = -66.0
+[[colliders]]
+  x = 0.0
+  y = -16.0
   name = "little3"
   props = "little"
 
-[[weapons.defs]]
-  x = 50.0
-  y = -70.0
+[[colliders]]
+  x = 0.0
+  y = -20.0
   name = "ball"
   props = "whip"
 
 [[chains]]
-  object1 = "player"
+  object1 = "root"
   object2 = "little1"
-  x = 50.0
-  y = -50.0
+  x = 0.0
+  y = -0.0
   length = 10
 
 [[chains]]
   object1 = "little1"
   object2 = "little2"
-  x = 50.0
-  y = -60.0
+  x = 0.0
+  y = -10.0
   length = 3
 [[chains]]
   object1 = "little2"
   object2 = "little3"
-  x = 50.0
-  y = -63.0
+  x = 0.0
+  y = -13.0
   length = 3
 [[chains]]
   object1 = "little3"
   object2 = "ball"
-  x = 50.0
-  y = -66.0
+  x = 0.0
+  y = -16.0
   length = 3

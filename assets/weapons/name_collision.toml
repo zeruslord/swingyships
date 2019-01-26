@@ -1,0 +1,14 @@
+name = "name_collision"
+
+[[colliders]]
+  name = "little2"
+  props = "big"
+  x = 0.0
+  y = -20.0
+
+[[chains]]
+  object1 = "root"
+  object2 = "little2"
+  x = 0.0
+  y = -20.0
+  length = 25

@@ -17,7 +17,7 @@ extern crate wrapped2d;
 mod swingyships;
 use swingyships::objects::*;
 use swingyships::game::*;
-use swingyships::level_loader::{LevelDef, load_level};
+use swingyships::level_loader::{LevelDef, ColliderProps, WeaponDef, load_level};
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -206,25 +206,59 @@ fn main() {
     let rev_handle = world.create_joint(&rev_joint_def);
 */
     let args: Vec<String> = env::args().collect();
-    let mut level_contents = String::new();
-    for arg in &args[1..] {
-        level_contents = match std::fs::read_to_string(&arg) {
-            Ok(s) => level_contents + &s,
-            Err(e) => {
-              print!("{}", e);
-              panic!("could not read contents of level file {}", arg)
-            }
-        };
-    }
+    let level_contents: String = match std::fs::read_to_string(&args[1]) {
+        Ok(s) => s,
+        Err(e) => {
+            println!("{}", e);
+            panic!("could not read contents of level file {}", args[1])
+        }
+    };
     let level_def: LevelDef = match toml::from_str(&level_contents) {
         Ok(def) => def,
         Err(e) => {
-          print!("{}", e);
-          panic!("could not parse contents of level file")
+            println!("{}", e);
+            panic!("could not parse contents of level file")
+        }
+    };
+    let props_contents = match std::fs::read_to_string(&args[2]) {
+        Ok(s) => s,
+        Err(e) => {
+            println!("{}", e);
+            panic!("could not read contents of props file {}", args[2])
+        }
+    };
+    let props_def: HashMap<String, ColliderProps> = match toml::from_str(&props_contents) {
+        Ok(def) => def,
+        Err(e) => {
+            println!("{}", e);
+            panic!("could not parse contents of props file {}", args[2])
         }
     };
 
-    load_level(&mut game, swingyships::level_loader::Textures{chaser: chaser_tex, default: tex}, level_def);
+    let mut weapon_defs: HashMap<String, WeaponDef> = HashMap::new();
+    for arg in &args[3..] {
+        let weapon_contents = match std::fs::read_to_string(&arg) {
+            Ok(s) => s,
+            Err(e) => {
+              println!("{}", e);
+              panic!("could not read contents of weapon file {}", &arg)
+            }
+        };
+        let weapon_def: WeaponDef = match toml::from_str(&weapon_contents) {
+            Ok(def) => def,
+            Err(e) => {
+                println!("{}", e);
+                panic!("could not parse contents of weapon file {}", &arg)
+            }
+        };
+        weapon_defs.insert(weapon_def.name.clone(), weapon_def);
+    }
+
+    load_level(&mut game,
+        swingyships::level_loader::Textures{chaser: chaser_tex, default: tex},
+        level_def,
+        &weapon_defs,
+        &props_def);
 
     while let Some(e) = window.next() {
         game.scene.event(&e);

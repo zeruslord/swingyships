@@ -1,47 +1,47 @@
 
-[weapons.props.whip]
+[whip]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.25
   density = 4.0
   restitution = 0.4
 
-[weapons.props.deadblow]
+[deadblow]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.25
   density = 4.0
   restitution = -1.0
 
-[weapons.props.rebound]
+[rebound]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.25
   density = 4.0
   restitution = 0.8
 
-[weapons.props.little]
+[little]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.15
   density = 1.0
   restitution = 0.8
 
-[weapons.props.joiner]
+[joiner]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.15
   density = 0.2
   restitution = 0.8
 
-[weapons.props.cat]
+[cat]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.15
   density = 0.5
   restitution = 0.2
 
-[weapons.props.big]
+[big]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.35

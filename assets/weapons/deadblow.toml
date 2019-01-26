@@ -1,0 +1,14 @@
+name = "deadblow"
+
+[[colliders]]
+  name = "deadblow"
+  props = "deadblow"
+  x = 0.0
+  y = -10.0
+
+[[chains]]
+  object1 = "root"
+  object2 = "deadblow"
+  x = 0.0
+  y = -10.0
+  length = 15

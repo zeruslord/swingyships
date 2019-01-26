@@ -1,50 +1,50 @@
-
-[[weapons.defs]]
-    x = 50.0
-    y = -63.0
+name = "cat_of_nine"
+[[colliders]]
+    x = 0.0
+    y = -13.0
     name = "cat_little1"
     props = "cat"
 
-[[weapons.defs]]
-  x = 53.0
-  y = -66.0
+[[colliders]]
+  x = 3.0
+  y = -16.0
   name = "cat_little2"
   props = "cat"
 
-[[weapons.defs]]
-  x = 47.0
-  y = -63.0
+[[colliders]]
+  x = -3.0
+  y = -13.0
   name = "cat_little3"
   props = "cat"
 
-[[weapons.defs]]
-  x = 50.0
-  y = -60.0
+[[colliders]]
+  x = 0.0
+  y = -10.0
   name = "cat_ball"
   props = "joiner"
 
 [[chains]]
-  object1 = "player"
+  object1 = "root"
   object2 = "cat_ball"
-  x = 50.0
-  y = -50.0
+  x = 0.0
+  y = 0.0
   length = 12
 
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little1"
-  x = 50.0
-  y = -50.0
+  x = 0.0
+  y = 0.0
   length = 3
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little2"
-  x = 50.0
-  y = -50.0
+  x = 0.0
+  y = 0.0
   length = 6
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little3"
-  x = 50.0
-  y = -50.0
+  x = 0.0
+  y = 0.0
   length = 9

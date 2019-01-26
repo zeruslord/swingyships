@@ -19,9 +19,37 @@
   root = "armed_chaser"
 
 [[weapons]]
-  class = "whip"
+  class = "2chains"
   root = "player"
 
 [[weapons]]
   class ="big_whip"
+  root = "player"
+
+[[weapons]]
+  class ="cat_of_nine"
+  root = "player"
+
+[[weapons]]
+  class ="deadblow"
+  root = "player"
+
+[[weapons]]
+  class ="long_chain"
+  root = "player"
+
+[[weapons]]
+  class ="name_collision"
+  root = "player"
+
+[[weapons]]
+  class ="noob_whip"
+  root = "player"
+
+[[weapons]]
+  class ="rebound"
+  root = "player"
+
+[[weapons]]
+  class ="whip"
   root = "player"

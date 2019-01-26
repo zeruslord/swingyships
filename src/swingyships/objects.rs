@@ -8,7 +8,7 @@ use glium_graphics::Texture;
 use slotmap::{SlotMap, DefaultKey};
 
 use swingyships::game::{Game, GameObject, GameObjectType};
-use swingyships::level_loader::{ChaserDef, ChaserProps, WeaponDef, WeaponProps, ChainDef};
+use swingyships::level_loader::{ChaserDef, ChaserProps, ColliderDef, ColliderProps, ChainDef};
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -67,13 +67,14 @@ pub fn make_chaser(
 pub fn make_ball(
         game: &mut Game,
         tex: &Rc<Texture>,
-        def: WeaponDef,
-        props: &WeaponProps
+        def: &ColliderDef,
+        props: &ColliderProps,
+        root_pos: b2::Vec2
     ) -> DefaultKey
 {
     let mut def = b2::BodyDef {
         body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x: def.x, y: def.y },
+        position: b2::Vec2 { x: def.x + root_pos.x, y: def.y + root_pos.y },
         .. b2::BodyDef::new()
     };
 
@@ -116,15 +117,16 @@ pub fn make_chain(
         key1: DefaultKey,
         key2: DefaultKey,
         tex: &Rc<Texture>,
-        def: ChainDef) -> Option<TypedHandle<b2::Joint>> {
+        def: &ChainDef,
+        root_pos: b2::Vec2) -> Option<TypedHandle<b2::Joint>> {
 
     let center1 = game.body(key1)?.local_center().clone();
     let handle_prev = game.handle(key1)?;
-    let mut link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x, def.y, center1);
+    let mut link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x + root_pos.x, def.y + root_pos.y, center1);
 
     for i in 1 .. def.length {
         let handle_prev = game.handle(link_prev)?;
-        link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x, def.y, b2::Vec2{x: 0.18, y: 0.18});
+        link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x + root_pos.x, def.y + root_pos.y, b2::Vec2{x: 0.18, y: 0.18});
     }
 
     let mut rev_def = b2::RopeJointDef::new(game.handle(link_prev)?, game.handle(key2)?);
