@@ -1,0 +1,50 @@
+
+[[weapons.defs]]
+    x = 50.0
+    y = -60.0
+    name = "little1"
+    props = "little"
+
+[[weapons.defs]]
+  x = 50.0
+  y = -63.0
+  name = "little2"
+  props = "little"
+
+[[weapons.defs]]
+  x = 50.0
+  y = -66.0
+  name = "little3"
+  props = "little"
+
+[[weapons.defs]]
+  x = 50.0
+  y = -70.0
+  name = "ball"
+  props = "whip"
+
+[[chains]]
+  object1 = "player"
+  object2 = "little1"
+  x = 50.0
+  y = -50.0
+  length = 10
+
+[[chains]]
+  object1 = "little1"
+  object2 = "little2"
+  x = 50.0
+  y = -60.0
+  length = 3
+[[chains]]
+  object1 = "little2"
+  object2 = "little3"
+  x = 50.0
+  y = -63.0
+  length = 3
+[[chains]]
+  object1 = "little3"
+  object2 = "ball"
+  x = 50.0
+  y = -66.0
+  length = 3

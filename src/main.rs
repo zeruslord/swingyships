@@ -22,6 +22,7 @@ use swingyships::level_loader::{LevelDef, load_level};
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
 use wrapped2d::handle::TypedHandle;
+use std::env;
 
 use slotmap::{SlotMap, DefaultKey};
 
@@ -204,27 +205,26 @@ fn main() {
     rev_joint_def.enable_limit = false;
     let rev_handle = world.create_joint(&rev_joint_def);
 */
-    let mut level_file = File::open(assets.join("chasers.toml")).unwrap();
+    let args: Vec<String> = env::args().collect();
     let mut level_contents = String::new();
-    level_file.read_to_string(&mut level_contents).unwrap();
-    let level_def: LevelDef = toml::from_str(&level_contents).unwrap();
+    for arg in &args[1..] {
+        level_contents = match std::fs::read_to_string(&arg) {
+            Ok(s) => level_contents + &s,
+            Err(e) => {
+              print!("{}", e);
+              panic!("could not read contents of level file {}", arg)
+            }
+        };
+    }
+    let level_def: LevelDef = match toml::from_str(&level_contents) {
+        Ok(def) => def,
+        Err(e) => {
+          print!("{}", e);
+          panic!("could not parse contents of level file")
+        }
+    };
 
-    load_level(&mut game, swingyships::level_loader::Textures{chaser: chaser_tex}, level_def);
-
-    let ball1 = make_ball(&mut game, tex.clone(), 50., -65.);
-    make_rope_joint(&mut game, ball1, player, 15.);
-    make_chain(&mut game, ball1, player, tex.clone(), 50., -50., 15);
-
-
-    let ball2 = make_ball(&mut game, tex.clone(), 50., -70.);
-    make_chain(&mut game, ball1, ball2,  tex.clone(),50., -50., 5);
-    make_rope_joint(&mut game, ball1, ball2, 5.);
-
-    let ball3 = make_ball(&mut game, tex.clone(), 50., -20.);
-    let ball4 = make_ball(&mut game, tex.clone(), 50., -30.);
-
-    make_chain(&mut game, ball3, ball4,  tex.clone(),50., -50., 8);
-    make_rope_joint(&mut game, ball3, ball4, 8.);
+    load_level(&mut game, swingyships::level_loader::Textures{chaser: chaser_tex, default: tex}, level_def);
 
     while let Some(e) = window.next() {
         game.scene.event(&e);

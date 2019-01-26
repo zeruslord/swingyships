@@ -103,7 +103,7 @@ impl GameObjectType {
                     let ship_body = game.body(game.player).unwrap();
 
                     let vec = ship_body.position() - chaser_body.position();
-                    let vec = vec / vec.norm() * 1000.;
+                    let vec = vec / vec.norm() * 2000.;
                     chaser_body.apply_force_to_center(&vec, true);
                 }
             }

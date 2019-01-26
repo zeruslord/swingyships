@@ -1,0 +1,34 @@
+[chasers.props]
+  linear_damping = 1.5
+  scale = 0.5
+  density = 0.01
+  restitution = 0.2
+
+[[chasers.defs]]
+  x = 80.0
+  y = -50.0
+[[chasers.defs]]
+  x = 80.0
+  y = -20.0
+[[chasers.named_defs]]
+  name = "armed_chaser"
+  def = {x = 80.0, y = -80.0}
+
+[[weapons.defs]]
+  x = 50.0
+  y = -20.0
+  name = "ball3"
+  props = "whip"
+
+[[weapons.defs]]
+  x = 80.0
+  y = -90.0
+  name = "armed_chaser_whip"
+  props = "whip"
+
+[[chains]]
+  object1 = "armed_chaser"
+  object2 = "armed_chaser_whip"
+  x = 80.0
+  y = -80.0
+  length = 10

@@ -1,0 +1,12 @@
+[[weapons.defs]]
+  name = "big_whip"
+  props = "big"
+  x = 50.0
+  y = -70.0
+
+[[chains]]
+  object1 = "player"
+  object2 = "big_whip"
+  x = 50.0
+  y = -60.0
+  length = 25
