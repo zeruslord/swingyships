@@ -17,7 +17,7 @@ extern crate wrapped2d;
 mod swingyships;
 use swingyships::objects::*;
 use swingyships::game::*;
-use swingyships::loader::Chasers;
+use swingyships::level_loader::{LevelDef, load_level};
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -202,13 +202,12 @@ fn main() {
     rev_joint_def.enable_limit = false;
     let rev_handle = world.create_joint(&rev_joint_def);
 */
-    let mut chasers_file = File::open(assets.join("chasers.toml")).unwrap();
-    let mut chasers_contents = String::new();
-    chasers_file.read_to_string(&mut chasers_contents).unwrap();
-    let chasers: Chasers = toml::from_str(&chasers_contents).unwrap();
-    for chaser in chasers.defs {
-        make_chaser(&mut game, &chaser_tex, chaser, &chasers.props);
-    }
+    let mut level_file = File::open(assets.join("chasers.toml")).unwrap();
+    let mut level_contents = String::new();
+    level_file.read_to_string(&mut level_contents).unwrap();
+    let level_def: LevelDef = toml::from_str(&level_contents).unwrap();
+
+    load_level(&mut game, swingyships::level_loader::Textures{chaser: chaser_tex}, level_def);
 
     let ball1 = make_ball(&mut game, tex.clone(), 50., -65.);
     make_rope_joint(&mut game, ball1.physics_handle, ship_handle, 15.);

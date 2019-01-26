@@ -1,15 +1,15 @@
-[props]
+[chasers.props]
   linear_damping = 1.5
   scale = 0.5
   density = 0.01
   restitution = 0.4
 
-[[defs]]
+[[chasers.defs]]
   x = 80.0
   y = -50.0
-[[defs]]
+[[chasers.defs]]
   x = 80.0
   y = -20.0
-[[defs]]
+[[chaers.defs]]
   x = 80.0
   y = -80.0

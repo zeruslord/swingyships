@@ -6,6 +6,7 @@ extern crate glium_graphics;
 use glium_graphics::Texture;
 
 use swingyships::game::{Game, GameObject, GameObjectType};
+use swingyships::level_loader::{ChaserDef, ChaserProps};
 
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
@@ -21,20 +22,6 @@ use ai_behavior::{
     WaitForever,
     While,
 };
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct ChaserDef {
-    pub x: f32,
-    pub y: f32
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct ChaserProps {
-    pub linear_damping: f32,
-    pub scale: f64,
-    pub density: f32,
-    pub restitution: f32
-}
 
 pub fn make_chaser(
         game: &mut Game,

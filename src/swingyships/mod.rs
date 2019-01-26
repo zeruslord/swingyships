@@ -1,3 +1,3 @@
 pub mod game;
 pub mod objects;
-pub mod loader;
+pub mod level_loader;
