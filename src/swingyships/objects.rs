@@ -124,7 +124,7 @@ pub fn make_chain(
     let handle_prev = game.handle(key1)?;
     let mut link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x + root_pos.x, def.y + root_pos.y, center1);
 
-    for i in 1 .. def.length {
+    for i in 0 .. def.length {
         let handle_prev = game.handle(link_prev)?;
         link_prev = make_chain_link(game, handle_prev, tex.clone(), def.x + root_pos.x, def.y + root_pos.y, b2::Vec2{x: 0.18, y: 0.18});
     }
