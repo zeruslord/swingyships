@@ -37,7 +37,7 @@ use ai_behavior::{
 
 use std::collections::HashMap;
 use std::io::prelude::*;
-use std::fs::File;
+use std::fs::{File, ReadDir, DirEntry};
 use std::rc::Rc;
 use std::iter::FromIterator;
 use uuid::Uuid;
@@ -70,7 +70,7 @@ fn main() {
 
     let assets = find_folder::Search::ParentsThenKids(3, 3)
         .for_folder("assets").unwrap();
-    let ship_id;
+
     let tex = Rc::new(Texture::from_path(
                     window,
                     assets.join("rust.png"),
@@ -78,8 +78,15 @@ fn main() {
                     &TextureSettings::new()
     ).unwrap());
 
+    let chaser_tex = Rc::new(Texture::from_path(
+                    window,
+                    assets.join("rust_red.png"),
+                    Flip::None,
+                    &TextureSettings::new()
+    ).unwrap());
+
     let mut sprite = Sprite::from_texture(tex.clone());
-    ship_id = scene.add_child(sprite);
+    let ship_id = scene.add_child(sprite);
     scene.run(ship_id, &Action(ScaleBy(0., -0.5, -0.5)));
 
     let mut def = b2::BodyDef {
@@ -114,13 +121,6 @@ fn main() {
         player: player,
         cursor_captured: true
     };
-
-    let chaser_tex = Rc::new(Texture::from_path(
-                    window,
-                    assets.join("rust_red.png"),
-                    Flip::None,
-                    &TextureSettings::new()
-    ).unwrap());
 
 
 
@@ -236,19 +236,26 @@ fn main() {
     };
 
     let mut weapon_defs: HashMap<String, WeaponDef> = HashMap::new();
-    for arg in &args[3..] {
-        let weapon_contents = match std::fs::read_to_string(&arg) {
+    for file in std::fs::read_dir(assets.join("weapons")).unwrap() {
+        let file = match file {
             Ok(s) => s,
             Err(e) => {
               println!("{}", e);
-              panic!("could not read contents of weapon file {}", &arg)
+              panic!("could not read weapon file")
+            }
+        };
+        let weapon_contents = match std::fs::read_to_string(&file.path()) {
+            Ok(s) => s,
+            Err(e) => {
+              println!("{}", e);
+              panic!("could not read contents of weapon file {:?}", file.file_name())
             }
         };
         let weapon_def: WeaponDef = match toml::from_str(&weapon_contents) {
             Ok(def) => def,
             Err(e) => {
                 println!("{}", e);
-                panic!("could not parse contents of weapon file {}", &arg)
+                panic!("could not parse contents of weapon file {:?}", &file.file_name())
             }
         };
         weapon_defs.insert(weapon_def.name.clone(), weapon_def);
