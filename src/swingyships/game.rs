@@ -23,17 +23,21 @@ use ai_behavior::{
     While,
 };
 
-use slotmap::{SlotMap, DefaultKey};
+use slotmap::SlotMap;
 
 use std::collections::HashMap;
 use std::rc::Rc;
 use uuid::Uuid;
 
+slotmap::new_key_type!(
+    pub struct GameObjectKey;
+);
+
 pub struct Game {
     pub scene: Scene<Texture>,
     pub world: b2::World<NoUserData>,
-    pub objects: SlotMap<DefaultKey, GameObject>,
-    pub player: DefaultKey,
+    pub objects: SlotMap<GameObjectKey, GameObject>,
+    pub player: GameObjectKey,
     pub cursor_captured: bool,
 }
 
@@ -52,19 +56,19 @@ pub struct GameObject {
 }
 
 impl Game {
-    pub fn body(&self, key: DefaultKey) -> Option<Ref<b2::MetaBody<NoUserData>>> {
+    pub fn body(&self, key: GameObjectKey) -> Option<Ref<b2::MetaBody<NoUserData>>> {
         Some(self.world.body(self.objects.get(key)?.physics_handle))
     }
 
-    pub fn handle(&self, key: DefaultKey) -> Option<TypedHandle<b2::Body>> {
+    pub fn handle(&self, key: GameObjectKey) -> Option<TypedHandle<b2::Body>> {
         Some(self.objects.get(key)?.physics_handle)
     }
 
-    pub fn draw_id(&self, key: DefaultKey) -> Option<Uuid> {
+    pub fn draw_id(&self, key: GameObjectKey) -> Option<Uuid> {
         Some(self.objects.get(key)?.draw_id)
     }
 
-    pub fn obj_type(&self, key: DefaultKey) -> Option<GameObjectType> {
+    pub fn obj_type(&self, key: GameObjectKey) -> Option<GameObjectType> {
         Some(self.objects.get(key)?.obj_type)
     }
 }

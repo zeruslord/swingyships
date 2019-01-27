@@ -1,7 +1,6 @@
 use swingyships::objects::{make_chaser, make_ball, make_chain};
-use swingyships::game::Game;
+use swingyships::game::{Game, GameObjectKey};
 use glium_graphics::Texture;
-use slotmap::DefaultKey;
 
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -90,7 +89,7 @@ pub struct ChainDef {
 
 pub fn load_level(game: &mut Game, tex: Textures, def: LevelDef,
         weapons: &HashMap<String, WeaponDef>, collider_props: &HashMap<String, ColliderProps>) {
-    let mut roots = HashMap::<String, DefaultKey>::new();
+    let mut roots = HashMap::<String, GameObjectKey>::new();
 
     roots.insert(String::from("player"), game.player);
 
@@ -128,7 +127,7 @@ pub fn load_weapon(
         tex: &Textures,
         def: &WeaponDef,
         collider_props: &HashMap<String, ColliderProps>,
-        root: DefaultKey
+        root: GameObjectKey
     ) {
     let mut objects = HashMap::new();
     objects.insert(String::from("root"), root);

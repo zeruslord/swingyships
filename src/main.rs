@@ -25,7 +25,7 @@ use wrapped2d::user_data::NoUserData;
 use wrapped2d::handle::TypedHandle;
 use std::env;
 
-use slotmap::{SlotMap, DefaultKey};
+use slotmap::SlotMap;
 
 use sprite::*;
 use ai_behavior::{
@@ -52,8 +52,6 @@ use piston::window::WindowSettings;
 
 use glutin_window::GlutinWindow;
 
-
-
 fn main() {
     let opengl = OpenGL::V3_0;
     let (width, height) = (1000, 1000);
@@ -63,7 +61,7 @@ fn main() {
     window.set_capture_cursor(true);
     let mut g2d = Glium2d::new(opengl, window);
 
-    let mut game_objects = SlotMap::new();
+    let mut game_objects: SlotMap<GameObjectKey, GameObject> = SlotMap::with_key();
     let gravity = b2::Vec2 { x: 0., y: -10. };
     let mut world = b2::World::<NoUserData>::new(&gravity);
     world.set_contact_listener(Box::new(FixRestitutionListener{}));
