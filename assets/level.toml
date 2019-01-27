@@ -2,7 +2,7 @@
   linear_damping = 1.5
   scale = 0.5
   density = 2.0
-  restitution = 0.4
+  restitution = 0.8
 
 [[chasers.defs]]
   x = 80.0
@@ -19,5 +19,5 @@
   root = "armed_chaser"
 
 [[weapons]]
-  class = "long_chain_2"
+  class = "rebound"
   root = "player"

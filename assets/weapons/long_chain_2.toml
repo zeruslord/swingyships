@@ -1,0 +1,40 @@
+name = "long_chain_2"
+
+[[colliders]]
+  x = 0.0
+  y = -16.0
+  name = "little2"
+  props = "joiner"
+
+[[colliders]]
+  x = 0.0
+  y = -18.0
+  name = "little3"
+  props = "joiner"
+
+[[colliders]]
+  x = 0.0
+  y = -20.0
+  name = "ball"
+  props = "whip"
+
+[[chains]]
+  object1 = "root"
+  object2 = "little2"
+  x = 0.0
+  y = -0.0
+  length = 16
+
+
+[[chains]]
+  object1 = "little2"
+  object2 = "little3"
+  x = 0.0
+  y = -16.0
+  length = 2
+[[chains]]
+  object1 = "little3"
+  object2 = "ball"
+  x = 0.0
+  y = -18.0
+  length = 2

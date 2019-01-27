@@ -17,6 +17,7 @@ extern crate wrapped2d;
 mod swingyships;
 use swingyships::objects::*;
 use swingyships::game::*;
+use swingyships::physics::FixRestitutionListener;
 use swingyships::level_loader::{LevelDef, ColliderProps, WeaponDef, load_level};
 
 use wrapped2d::b2;
@@ -65,6 +66,7 @@ fn main() {
     let mut game_objects = SlotMap::new();
     let gravity = b2::Vec2 { x: 0., y: -10. };
     let mut world = b2::World::<NoUserData>::new(&gravity);
+    world.set_contact_listener(Box::new(FixRestitutionListener{}));
     let mut scene: Scene<Texture> = Scene::new();
 
 

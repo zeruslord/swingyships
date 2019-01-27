@@ -1,0 +1,13 @@
+name = "big_rebound"
+[[colliders]]
+  name = "whip"
+  props = "big_rebound"
+  x = 0.0
+  y = -20.0
+
+[[chains]]
+  object1 = "root"
+  object2 = "whip"
+  x =  0.0
+  y = -10.0
+  length = 25
