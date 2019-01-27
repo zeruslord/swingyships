@@ -31,12 +31,14 @@ use uuid::Uuid;
 
 slotmap::new_key_type!(
     pub struct GameObjectKey;
+    pub struct SpriteKey;
 );
 
 pub struct Game {
     pub scene: Scene<Texture>,
     pub world: b2::World<NoUserData>,
     pub objects: SlotMap<GameObjectKey, GameObject>,
+    pub sprites: SlotMap<SpriteKey, SpriteObject>,
     pub player: GameObjectKey,
     pub cursor_captured: bool,
 }
@@ -55,6 +57,17 @@ pub struct GameObject {
     pub obj_type: GameObjectType
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum SpriteObjectType {
+    Explosion(i32)
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct SpriteObject {
+    pub draw_id: Uuid,
+    pub kind: SpriteObjectType
+}
+
 impl Game {
     pub fn body(&self, key: GameObjectKey) -> Option<Ref<b2::MetaBody<NoUserData>>> {
         Some(self.world.body(self.objects.get(key)?.physics_handle))
@@ -71,6 +84,10 @@ impl Game {
     pub fn obj_type(&self, key: GameObjectKey) -> Option<GameObjectType> {
         Some(self.objects.get(key)?.obj_type)
     }
+
+    pub fn sprite_type(&self, key: SpriteKey) -> Option<SpriteObjectType> {
+        Some(self.sprites.get(key)?.kind)
+    }
 }
 
 impl GameObject {
@@ -82,6 +99,20 @@ impl GameObject {
     }
 }
 
+impl SpriteObjectType {
+    pub fn update(&mut self, e: &Event) -> bool {
+        let mut destroy = false;
+        match self {
+            SpriteObjectType::Explosion(ref mut i) => {
+                if *i <= 0 {
+                    destroy = true;
+                };
+                *i = *i - 1;
+            }
+        };
+        destroy
+    }
+}
 impl GameObjectType {
     pub fn update(&self, e: &Event, game: &Game, handle: TypedHandle<b2::Body>) {
         match self {

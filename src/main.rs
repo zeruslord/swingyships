@@ -40,6 +40,7 @@ use std::collections::HashMap;
 use std::io::prelude::*;
 use std::fs::{File, ReadDir, DirEntry};
 use std::rc::Rc;
+use std::cell::RefCell;
 use std::iter::FromIterator;
 use uuid::Uuid;
 
@@ -62,11 +63,11 @@ fn main() {
     let mut g2d = Glium2d::new(opengl, window);
 
     let mut game_objects: SlotMap<GameObjectKey, GameObject> = SlotMap::with_key();
+    let big_impacts = Rc::new(RefCell::new(Vec::new()));
     let gravity = b2::Vec2 { x: 0., y: -10. };
     let mut world = b2::World::<NoUserData>::new(&gravity);
-    world.set_contact_listener(Box::new(FixRestitutionListener{}));
+    world.set_contact_listener(Box::new(FixRestitutionListener{big_impacts: big_impacts.clone()}));
     let mut scene: Scene<Texture> = Scene::new();
-
 
     let assets = find_folder::Search::ParentsThenKids(3, 3)
         .for_folder("assets").unwrap();
@@ -91,6 +92,7 @@ fn main() {
         objects: game_objects,
         world,
         scene,
+        sprites: SlotMap::with_key(),
         player: player,
         cursor_captured: true
     };
@@ -181,7 +183,7 @@ fn main() {
 
     let (level_def, props_def, weapon_defs)  = read_files(&assets);
     load_level(&mut game,
-        swingyships::level_loader::Textures{chaser: chaser_tex, default: tex},
+        swingyships::level_loader::Textures{chaser: chaser_tex, default: tex.clone()},
         level_def,
         &weapon_defs,
         &props_def);
@@ -197,8 +199,37 @@ fn main() {
         if let Some(args) = e.render_args() {
             game.world.step(1./60., 20, 20);
 
-            for key in game.objects.keys() {
+            for big_impact in big_impacts.replace(Vec::new()) {
+                println!("big impact {:?}", big_impact);
+                let mut sprite = Sprite::from_texture(tex.clone());
+                sprite.set_opacity(0.0);
+                let sprite_id = game.scene.add_child(sprite);
+                let seq = Sequence(vec![
+                    Action(ScaleBy(0., draw_scale(0.2), draw_scale(0.2))),
+                    Action(Ease(EaseFunction::QuadraticOut, Box::new(FadeIn(0.5)))),
+                    Action(Ease(EaseFunction::QuadraticIn, Box::new(FadeOut(0.5))))
+                ]);
+                game.scene.run(sprite_id, &seq);
+                game.scene.run(sprite_id, &Action(FadeTo(0.0, 0.5)));
+                game.scene.child_mut(sprite_id).unwrap().set_position(big_impact.0.x as f64 * 10., -big_impact.0.y as f64 * 10.);
+                game.sprites.insert(SpriteObject{draw_id: sprite_id, kind: SpriteObjectType::Explosion(60)});
+            }
 
+            let mut to_destroy = Vec::new();
+            for (ref key, ref mut sprite) in &mut game.sprites {
+                if sprite.kind.update(&e) {
+                    to_destroy.push(*key);
+                }
+            }
+            if(to_destroy.len() > 0) {
+                println!("destroying {} sprites  of {} total", to_destroy.len(), game.sprites.len())
+            }
+            for key in to_destroy {
+                let obj = game.sprites.remove(key).unwrap();
+                game.scene.remove_child(obj.draw_id);
+            }
+
+            for key in game.objects.keys() {
                 let x = game.body(key).unwrap().position().x as f64 * 10.;
                 let y = -game.body(key).unwrap().position().y as f64 * 10.;
                 let angle = game.body(key).unwrap().angle() as f64;
@@ -281,4 +312,9 @@ fn read_files(assets: &std::path::PathBuf) -> (LevelDef, HashMap<String, Collide
     }
 
     (level_def, props_def, weapon_defs)
+}
+
+// TODO: remove
+fn draw_scale(scale: f64) -> f64 {
+     -(1. - scale)
 }
