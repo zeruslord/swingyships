@@ -74,14 +74,14 @@ fn main() {
 
     let tex = Rc::new(Texture::from_path(
                     window,
-                    assets.join("rust.png"),
+                    assets.join("images").join("rust.png"),
                     Flip::None,
                     &TextureSettings::new()
     ).unwrap());
 
     let chaser_tex = Rc::new(Texture::from_path(
                     window,
-                    assets.join("rust_red.png"),
+                    assets.join("images").join("rust_red.png"),
                     Flip::None,
                     &TextureSettings::new()
     ).unwrap());
@@ -105,13 +105,6 @@ fn main() {
     let mut sprite = Sprite::from_texture(tex.clone());
     bar_id = scene.add_child(sprite);
 */
-
-    let tex = Rc::new(Texture::from_path(
-                    window,
-                    assets.join("rust.png"),
-                    Flip::None,
-                    &TextureSettings::new()
-    ).unwrap());
 
     let mut walls_def = b2::BodyDef {
         body_type: b2::BodyType::Static,
