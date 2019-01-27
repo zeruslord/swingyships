@@ -28,6 +28,43 @@ fn draw_scale(scale: f64) -> f64 {
      -(1. - scale)
 }
 
+pub fn make_player(
+        world: &mut b2::World::<NoUserData>,
+        scene: &mut Scene<Texture>,
+        tex: &Rc<Texture>,
+        game_objects: &mut SlotMap<DefaultKey, GameObject>
+        // TODO: parameterize
+    ) -> DefaultKey {
+    let mut sprite = Sprite::from_texture(tex.clone());
+    let ship_id = scene.add_child(sprite);
+    scene.run(ship_id, &Action(ScaleBy(0., -0.5, -0.5)));
+
+    let mut def = b2::BodyDef {
+        body_type: b2::BodyType::Dynamic,
+        position: b2::Vec2 { x: 50., y: -50. },
+        .. b2::BodyDef::new()
+    };
+
+    let ship_handle = world.create_body(&def);
+    {
+        let mut body = world.body_mut(ship_handle);
+        body.set_gravity_scale(0.);
+        body.set_linear_damping(2.);
+        body.set_rotation_fixed(true);
+
+
+        let mut shape = b2::CircleShape::new();
+        shape.set_radius(3.6);
+
+        let mut fixture_def = b2::FixtureDef::new();
+        fixture_def.density = 2.;
+        fixture_def.restitution = 0.5;
+        let handle = body.create_fixture(&shape, &mut fixture_def);
+    }
+
+    game_objects.insert(GameObject::new(ship_handle, ship_id, GameObjectType::Player))
+}
+
 pub fn make_chaser(
         game: &mut Game,
         tex: &Rc<Texture>,
@@ -50,10 +87,10 @@ pub fn make_chaser(
         let mut shape = b2::CircleShape::new();
         shape.set_radius(props.scale as f32 * 7.2);
 
-        let handle = body.create_fast_fixture(&shape, 2.);
-        let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(props.restitution);
-        fixture.set_density(props.density);
+        let mut fixture_def = b2::FixtureDef::new();
+        fixture_def.density = props.density;
+        fixture_def.restitution = props.restitution;
+        let handle = body.create_fixture(&shape, &mut fixture_def);
     }
 
     let ball_id;
@@ -86,14 +123,15 @@ pub fn make_ball(
     {
         let mut body = game.world.body_mut(whip_handle);
         body.set_linear_damping(props.linear_damping);
-        body.set_angular_damping(0.9);
+        body.set_angular_damping(props.angular_damping);
 
         let mut shape = b2::CircleShape::new();
         shape.set_radius(1.8);
 
-        let handle = body.create_fast_fixture(&shape, 4.);
-        let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(0.8);
+        let mut fixture_def = b2::FixtureDef::new();
+        fixture_def.density = props.density;
+        fixture_def.restitution = props.restitution;
+        let handle = body.create_fixture(&shape, &mut fixture_def);
     }
 
     game.objects.insert(GameObject::new(whip_handle, whip_id, GameObjectType::Default))

@@ -28,23 +28,23 @@ name = "cat_of_nine"
   object2 = "cat_ball"
   x = 0.0
   y = 0.0
-  length = 12
+  length = 15
 
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little1"
   x = 0.0
   y = 0.0
-  length = 3
+  length = 5
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little2"
   x = 0.0
   y = 0.0
-  length = 6
+  length = 5
 [[chains]]
   object1 = "cat_ball"
   object2 = "cat_little3"
   x = 0.0
   y = 0.0
-  length = 9
+  length = 5

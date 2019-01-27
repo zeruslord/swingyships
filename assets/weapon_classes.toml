@@ -4,14 +4,14 @@
   angular_damping = 0.1
   scale = 0.25
   density = 4.0
-  restitution = 0.4
+  restitution = 0.8
 
 [deadblow]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.25
   density = 4.0
-  restitution = -1.0
+  restitution = 0.0
 
 [rebound]
   linear_damping = 0.5
@@ -25,21 +25,21 @@
   angular_damping = 0.1
   scale = 0.15
   density = 1.0
-  restitution = 0.8
+  restitution = 1.0
 
 [joiner]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.15
   density = 0.2
-  restitution = 0.8
+  restitution = 0.4
 
 [cat]
   linear_damping = 0.5
   angular_damping = 0.1
   scale = 0.15
-  density = 0.5
-  restitution = 0.2
+  density = 1.0
+  restitution = 0.8
 
 [big]
   linear_damping = 0.5

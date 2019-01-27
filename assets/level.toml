@@ -1,8 +1,8 @@
 [chasers.props]
   linear_damping = 1.5
   scale = 0.5
-  density = 0.01
-  restitution = 0.2
+  density = 2.0
+  restitution = 0.4
 
 [[chasers.defs]]
   x = 80.0
@@ -19,9 +19,5 @@
   root = "armed_chaser"
 
 [[weapons]]
-  class = "whip"
-  root = "player"
-
-[[weapons]]
-  class ="big_whip"
+  class = "long_chain_2"
   root = "player"

@@ -85,34 +85,7 @@ fn main() {
                     &TextureSettings::new()
     ).unwrap());
 
-    let mut sprite = Sprite::from_texture(tex.clone());
-    let ship_id = scene.add_child(sprite);
-    scene.run(ship_id, &Action(ScaleBy(0., -0.5, -0.5)));
-
-    let mut def = b2::BodyDef {
-        body_type: b2::BodyType::Dynamic,
-        position: b2::Vec2 { x: 50., y: -50. },
-        .. b2::BodyDef::new()
-    };
-
-    let ship_handle = world.create_body(&def);
-    {
-        let mut body = world.body_mut(ship_handle);
-        body.set_gravity_scale(0.);
-        body.set_linear_damping(2.);
-        body.set_rotation_fixed(true);
-
-
-        let mut shape = b2::CircleShape::new();
-        shape.set_radius(3.6);
-
-        let handle = body.create_fast_fixture(&shape, 2.);
-        let mut fixture = body.fixture_mut(handle);
-        fixture.set_restitution(0.1);
-        fixture.set_density(0.01);
-    }
-
-    let player = game_objects.insert(GameObject::new(ship_handle, ship_id, GameObjectType::Player));
+    let player = make_player(&mut world, &mut scene, &tex, &mut game_objects);
 
     let mut game = Game{
         objects: game_objects,
@@ -149,35 +122,35 @@ fn main() {
 
         let mut shape = b2::EdgeShape::new();
         {
-            shape.set_v1(b2::Vec2{x:-5., y:5.});
-            shape.set_v2(b2::Vec2{x:-5., y:-105.});
-            let handle = body.create_fast_fixture(&shape, 2.);
-            let mut fixture = body.fixture_mut(handle);
-            fixture.set_restitution(1.0);
+            shape.set_v1(b2::Vec2{x:-2., y:2.});
+            shape.set_v2(b2::Vec2{x:-2., y:-102.});
+            let mut fixture_def = b2::FixtureDef::new();
+            fixture_def.restitution = 0.6;
+            let handle = body.create_fixture(&shape, &mut fixture_def);
         }
 
         {
-            shape.set_v1(b2::Vec2{x:-5., y:-105.});
-            shape.set_v2(b2::Vec2{x:105., y:-105.});
-            let handle = body.create_fast_fixture(&shape, 2.);
-            let mut fixture = body.fixture_mut(handle);
-            fixture.set_restitution(1.0);
+            shape.set_v1(b2::Vec2{x:-2., y:-102.});
+            shape.set_v2(b2::Vec2{x:102., y:-102.});
+            let mut fixture_def = b2::FixtureDef::new();
+            fixture_def.restitution = 0.6;
+            let handle = body.create_fixture(&shape, &mut fixture_def);
         }
 
         {
-            shape.set_v1(b2::Vec2{x:105., y:5.});
-            shape.set_v2(b2::Vec2{x:105., y:-105.});
-            let handle = body.create_fast_fixture(&shape, 2.);
-            let mut fixture = body.fixture_mut(handle);
-            fixture.set_restitution(1.0);
+            shape.set_v1(b2::Vec2{x:102., y:2.});
+            shape.set_v2(b2::Vec2{x:102., y:-102.});
+            let mut fixture_def = b2::FixtureDef::new();
+            fixture_def.restitution = 0.6;
+            let handle = body.create_fixture(&shape, &mut fixture_def);
         }
 
         {
-            shape.set_v1(b2::Vec2{x:-5., y:5.});
-            shape.set_v2(b2::Vec2{x:105., y:5.});
-            let handle = body.create_fast_fixture(&shape, 2.);
-            let mut fixture = body.fixture_mut(handle);
-            fixture.set_restitution(1.0);
+            shape.set_v1(b2::Vec2{x:-2., y:2.});
+            shape.set_v2(b2::Vec2{x:102., y:2.});
+            let mut fixture_def = b2::FixtureDef::new();
+            fixture_def.restitution = 0.6;
+            let handle = body.create_fixture(&shape, &mut fixture_def);
         }
 
     }
@@ -205,6 +178,52 @@ fn main() {
     rev_joint_def.enable_limit = false;
     let rev_handle = world.create_joint(&rev_joint_def);
 */
+
+    let (level_def, props_def, weapon_defs)  = read_files(&assets);
+    load_level(&mut game,
+        swingyships::level_loader::Textures{chaser: chaser_tex, default: tex},
+        level_def,
+        &weapon_defs,
+        &props_def);
+
+    while let Some(e) = window.next() {
+        game.scene.event(&e);
+
+        for key in game.objects.keys() {
+            let handle = game.handle(key).unwrap();
+            game.obj_type(key).unwrap().update(&e, &game, handle);
+        }
+
+        if let Some(args) = e.render_args() {
+            game.world.step(1./60., 20, 20);
+
+            for key in game.objects.keys() {
+
+                let x = game.body(key).unwrap().position().x as f64 * 10.;
+                let y = -game.body(key).unwrap().position().y as f64 * 10.;
+                let angle = game.body(key).unwrap().angle() as f64;
+                let draw_id = game.draw_id(key).unwrap();
+                game.scene.child_mut(draw_id).unwrap().set_position(x, y);
+                game.scene.run(draw_id, &Action(RotateBy(0., angle)));
+            }
+
+            let mut target = window.draw();
+            g2d.draw(&mut target, args.viewport(), |c, g| {
+                graphics::clear([1.0, 1.0, 1.0, 1.0], g);
+                game.scene.draw(c.transform, g);
+            });
+            target.finish().unwrap();
+        }
+
+        if let Some(_) = e.press_args() {
+            game.cursor_captured = !game.cursor_captured;
+            window.set_capture_cursor(game.cursor_captured);
+        }
+    }
+}
+
+
+fn read_files(assets: &std::path::PathBuf) -> (LevelDef, HashMap<String, ColliderProps>, HashMap<String, WeaponDef>) {
     let args: Vec<String> = env::args().collect();
     let level_contents: String = match std::fs::read_to_string(&args[1]) {
         Ok(s) => s,
@@ -261,44 +280,5 @@ fn main() {
         weapon_defs.insert(weapon_def.name.clone(), weapon_def);
     }
 
-    load_level(&mut game,
-        swingyships::level_loader::Textures{chaser: chaser_tex, default: tex},
-        level_def,
-        &weapon_defs,
-        &props_def);
-
-    while let Some(e) = window.next() {
-        game.scene.event(&e);
-
-        for key in game.objects.keys() {
-            let handle = game.handle(key).unwrap();
-            game.obj_type(key).unwrap().update(&e, &game, handle);
-        }
-
-        if let Some(args) = e.render_args() {
-            game.world.step(1./60., 20, 20);
-
-            for key in game.objects.keys() {
-
-                let x = game.body(key).unwrap().position().x as f64 * 10.;
-                let y = -game.body(key).unwrap().position().y as f64 * 10.;
-                let angle = game.body(key).unwrap().angle() as f64;
-                let draw_id = game.draw_id(key).unwrap();
-                game.scene.child_mut(draw_id).unwrap().set_position(x, y);
-                game.scene.run(draw_id, &Action(RotateBy(0., angle)));
-            }
-
-            let mut target = window.draw();
-            g2d.draw(&mut target, args.viewport(), |c, g| {
-                graphics::clear([1.0, 1.0, 1.0, 1.0], g);
-                game.scene.draw(c.transform, g);
-            });
-            target.finish().unwrap();
-        }
-
-        if let Some(_) = e.press_args() {
-            game.cursor_captured = !game.cursor_captured;
-            window.set_capture_cursor(game.cursor_captured);
-        }
-    }
+    (level_def, props_def, weapon_defs)
 }
